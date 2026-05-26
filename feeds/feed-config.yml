@@ -1,0 +1,169 @@
+# SOC Threat Intelligence Feed Configuration
+# Update refresh_interval and enabled flags per your environment
+# API keys must be set in .env — never hardcode here
+
+global:
+  output_dir: "../iocs/active/"
+  dedup_window_hours: 24
+  min_confidence: 50          # Only ingest IOCs >= this confidence score
+  max_ioc_age_days: 90        # Retire IOCs older than this
+  stix_version: "2.1"
+
+feeds:
+  # -------------------------------------------------------------------------
+  # FREE FEEDS
+  # -------------------------------------------------------------------------
+
+  - name: abuse_ch_urlhaus
+    description: "Abuse.ch URLhaus — malicious URLs and domains"
+    enabled: true
+    type: csv
+    url: "https://urlhaus.abuse.ch/downloads/csv_recent/"
+    refresh_interval_minutes: 5
+    ioc_types: [url, domain]
+    confidence: 75
+    tlp: white
+    tags: [malware, phishing, c2]
+    mapping:
+      url: url
+      host: domain
+      threat_type: category
+      date_added: first_seen
+
+  - name: abuse_ch_malwarebazaar
+    description: "Abuse.ch MalwareBazaar — malware file hashes"
+    enabled: true
+    type: json
+    url: "https://mb-api.abuse.ch/api/v1/"
+    method: POST
+    body: "query=get_recent&selector=100"
+    refresh_interval_minutes: 30
+    ioc_types: [md5_hash, sha256_hash]
+    confidence: 80
+    tlp: white
+    tags: [malware]
+    mapping:
+      md5_hash: md5_hash
+      sha256_hash: sha256_hash
+      file_name: filename
+      file_type: filetype
+      first_seen: first_seen
+      tags: tags
+
+  - name: abuse_ch_threatfox
+    description: "Abuse.ch ThreatFox — IOCs with MITRE technique mapping"
+    enabled: true
+    type: json
+    url: "https://threatfox-api.abuse.ch/api/v1/"
+    method: POST
+    body: '{"query":"get_iocs","days":1}'
+    refresh_interval_minutes: 60
+    ioc_types: [ip, domain, url, md5_hash, sha256_hash]
+    confidence: 80
+    tlp: white
+    tags: [malware, c2]
+    mapping:
+      ioc_value: value
+      ioc_type: type
+      threat_type: category
+      malware: malware_family
+      first_seen: first_seen
+      last_seen: last_seen
+      confidence_level: confidence
+
+  - name: cisa_kev
+    description: "CISA Known Exploited Vulnerabilities catalogue"
+    enabled: true
+    type: json
+    url: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+    refresh_interval_minutes: 1440   # Daily
+    ioc_types: [cve]
+    confidence: 95
+    tlp: white
+    tags: [vulnerability, exploited-in-wild]
+    mapping:
+      cveID: cve_id
+      vendorProject: vendor
+      product: product
+      vulnerabilityName: title
+      dateAdded: date_added
+      dueDate: patch_due_date
+      knownRansomwareCampaignUse: ransomware_flag
+
+  - name: otx_pulses
+    description: "AlienVault OTX — threat pulses (requires free API key)"
+    enabled: true
+    type: otx_api
+    api_key_env: OTX_API_KEY
+    base_url: "https://otx.alienvault.com/api/v1"
+    endpoint: "/pulses/subscribed"
+    refresh_interval_minutes: 15
+    ioc_types: [ip, domain, url, md5_hash, sha256_hash, cve]
+    confidence: 70
+    tlp: white
+    tags: [otx]
+    filters:
+      modified_since: "-1d"    # Only pulses modified in last 24h
+
+  # -------------------------------------------------------------------------
+  # PAID FEEDS (disabled by default)
+  # -------------------------------------------------------------------------
+
+  - name: recorded_future
+    description: "Recorded Future Intelligence Cloud (requires licence)"
+    enabled: false
+    type: stix_taxii
+    taxii_url: "https://api.recordedfuture.com/v2/taxii"
+    api_key_env: RF_API_KEY
+    collection: "rf-threat-intelligence"
+    refresh_interval_minutes: 60
+    ioc_types: [ip, domain, url, md5_hash, sha256_hash, cve]
+    confidence: 85
+    tlp: amber
+    tags: [premium, recorded-future]
+
+  - name: virustotal_livehunt
+    description: "VirusTotal Livehunt notifications (requires Enterprise)"
+    enabled: false
+    type: vt_api
+    api_key_env: VT_API_KEY
+    endpoint: "https://www.virustotal.com/api/v3/intelligence/hunting_notifications"
+    refresh_interval_minutes: 30
+    ioc_types: [md5_hash, sha256_hash, url]
+    confidence: 80
+    tlp: amber
+    tags: [premium, virustotal]
+
+  # -------------------------------------------------------------------------
+  # INTERNAL FEEDS
+  # -------------------------------------------------------------------------
+
+  - name: internal_incident_iocs
+    description: "IOCs extracted from internal incident investigations"
+    enabled: true
+    type: local_csv
+    path: "../iocs/internal/incident-iocs.csv"
+    refresh_interval_minutes: 60
+    ioc_types: [ip, domain, url, md5_hash, sha256_hash]
+    confidence: 95
+    tlp: red
+    tags: [internal, confirmed]
+
+routing:
+  # Route IOCs to different SIEM/enforcement layers based on confidence
+  high_confidence:        # confidence >= 80
+    - siem_block_list
+    - firewall_deny
+    - edr_watchlist
+  medium_confidence:      # confidence 50-79
+    - siem_alert_list
+    - edr_watchlist
+  low_confidence:         # confidence 30-49
+    - siem_monitor_list
+
+notifications:
+  slack_webhook_env: SLACK_WEBHOOK_URL
+  alert_on_new_high_confidence: true
+  alert_on_cisa_kev_update: true
+  daily_digest: true
+  digest_time: "07:00"
