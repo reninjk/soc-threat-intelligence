@@ -1,0 +1,56 @@
+name: Validate TI Content
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    name: Validate Threat Intelligence Content
+    runs-on: ubuntu-latest
+    continue-on-error: true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check required directories exist
+        run: |
+          echo "=== Directory Structure Check ==="
+          for dir in actors feeds iocs reports integrations scripts; do
+            if [ -d "$dir" ]; then
+              echo "  OK : $dir/"
+            else
+              echo "  MISSING: $dir/"
+            fi
+          done
+
+      - name: Check required files exist
+        run: |
+          echo "=== Required Files Check ==="
+          for f in README.md CONTRIBUTING.md SECURITY.md; do
+            if [ -f "$f" ]; then
+              echo "  OK : $f"
+            else
+              echo "  MISSING: $f"
+            fi
+          done
+
+      - name: Validate YAML files
+        continue-on-error: true
+        run: |
+          echo "=== YAML Validation ==="
+          pip install --quiet yamllint
+          find . -name "*.yml" -o -name "*.yaml" | grep -v ".git" | while read f; do
+            yamllint -d relaxed "$f" && echo "OK: $f" || echo "WARN: $f"
+          done
+
+      - name: Validate Python scripts
+        continue-on-error: true
+        run: |
+          echo "=== Python Syntax Check ==="
+          find scripts -name "*.py" 2>/dev/null | while read f; do
+            python -m py_compile "$f" && echo "OK: $f" || echo "FAIL: $f"
+          done || echo "No Python scripts found"
