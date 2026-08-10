@@ -1,3 +1,5 @@
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Last Commit](https://img.shields.io/github/last-commit/reninjk/soc-threat-intelligence)](https://github.com/reninjk/soc-threat-intelligence/commits/main) [![Issues](https://img.shields.io/github/issues/reninjk/soc-threat-intelligence)](https://github.com/reninjk/soc-threat-intelligence/issues)
+
 # SOC Threat Intelligence
 
 Threat intelligence resources for the Security Operations Centre: feed configurations, IOC watchlists, actor profiles, TI report templates, and automation scripts for feed ingestion.
