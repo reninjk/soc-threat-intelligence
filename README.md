@@ -59,7 +59,7 @@ python feed-ingest.py --source all --output ../iocs/
 ## Sensitive Data Policy
 
 - Never commit real IOC data from live incidents
-- Templates use placeholder values only — actual IOCs live in the SIEM/TI platform
+- Templates use placeholder values only: actual IOCs live in the SIEM/TI platform
 - API keys belong in `.env` (git-ignored)
 - Actor profiles must not include OSINT that could identify individual operators
 
