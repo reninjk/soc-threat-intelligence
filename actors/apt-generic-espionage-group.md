@@ -1,8 +1,8 @@
-# Threat Actor Profile — GENERIC-ESPIONAGE-GROUP
+# Threat Actor Profile: GENERIC-ESPIONAGE-GROUP
 
 > **OPSEC Notice:** This profile is a fictional composite for SOC portfolio demonstration.
 > All IOCs are placeholder values only. Real operator identities are never included.
-> In production, live IOCs live in the SIEM/TI platform — not in Git.
+> In production, live IOCs live in the SIEM/TI platform: not in Git.
 
 ---
 
@@ -13,7 +13,7 @@
 | **Profile ID** | TA-2026-001 |
 | **Alias(es)** | GENERIC-ESPIONAGE-GROUP, GEG |
 | **Suspected Origin** | Unattributed (nation-state aligned) |
-| **Motivation** | Cyber espionage — intellectual property theft, credential harvesting |
+| **Motivation** | Cyber espionage: intellectual property theft, credential harvesting |
 | **Target Sectors** | Defence, Aerospace, Critical Infrastructure, Financial Services |
 | **Target Regions** | Western Europe, North America, APAC |
 | **Activity Since** | 2021 (estimated) |
@@ -50,17 +50,17 @@
 
 ---
 
-## Known Infrastructure (PLACEHOLDER — Example Only)
+## Known Infrastructure (PLACEHOLDER: Example Only)
 
 > These are fictional examples. Replace with live IOCs from your TI platform.
 
 | Type | Indicator | Context |
 |------|-----------|---------|
-| Domain | update.example-cdn[.]net | C2 staging domain — mimics CDN |
+| Domain | update.example-cdn[.]net | C2 staging domain: mimics CDN |
 | Domain | telemetry.corp-analytics[.]com | DNS tunnelling domain |
 | IP | 198.51.100.42 | C2 server (TEST-NET placeholder per RFC 5737) |
 | IP | 203.0.113.17 | Exfiltration endpoint (TEST-NET placeholder) |
-| Hash (SHA-256) | e3b0c44...placeholder | Tool hash — placeholder only |
+| Hash (SHA-256) | e3b0c44...placeholder | Tool hash: placeholder only |
 
 ---
 
@@ -94,13 +94,13 @@ T+30d   Backdoor remains dormant; re-activates after credential rotation
 
 ## Response Recommendations
 
-1. **Detection priority:** Deploy all six Sigma rules above — they map directly to this actor's kill-chain
+1. **Detection priority:** Deploy all six Sigma rules above: they map directly to this actor's kill-chain
 2. **Hardening:** Enforce MFA on privileged accounts; disable macros by default in Office
 3. **Monitoring:** Increase logging for DNS (Sysmon EventID 22) and process access events
 4. **Threat Hunting:** Run lateral-movement hunting queries weekly
-5. **Incident Response:** If this actor suspected — engage IR retainer immediately; assume credentials compromised
+5. **Incident Response:** If this actor suspected: engage IR retainer immediately; assume credentials compromised
 
 ---
 
-*Profile classification: Internal — For SOC/IR team use only*
+*Profile classification: Internal: For SOC/IR team use only*
 *Author: reninjk | Reviewed: 2026-10-25*
